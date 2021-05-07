@@ -13,8 +13,12 @@ async def save(client, sname, title, cdata): # pylint: disable=too-many-argument
     server = cdata['sAtsServerUrl']
 
     for d in cdata['files']:
-        fname = f'{d["no"]:03d}.jpg' #1. leading zero
         full_url = f'{server}{d["secureUrl"]}'
+        if '.jpeg&gid' in full_url or '.jpg&gid' in full_url:
+            fname = f'{d["no"]:03d}.jpeg' #1. leading zero
+        elif '.png&gid' in full_url:
+            fname = f'{d["no"]:03d}.png' #1. leading zero
+
 
         print(f'Downloading {fname}...')
 
