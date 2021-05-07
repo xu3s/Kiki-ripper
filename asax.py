@@ -1,7 +1,7 @@
 import os
-from dotenv import load_dotenv
 import asyncio
 import shutil
+from dotenv import load_dotenv
 import aiohttp
 import aiofiles
 import uptobox
@@ -50,7 +50,6 @@ async def get_sdetail(ctx, sname, sdata):
 
 async def main(ctx, serid, chlist):
 
-    chlist = chan_gen(chlist)
     async with aiohttp.ClientSession() as client:
         status, sname, sdata = await series_data(client, serid)
         if status != 200:
@@ -61,6 +60,8 @@ async def main(ctx, serid, chlist):
         sname = f'{serid} - {sname}'
         if chlist is None:
             return await get_sdetail(ctx, sname, sdata)
+        
+        chlist = chan_gen(chlist)
         return await get_it(client, ctx, sdata, sname, chlist)
 
 async def get_it(client, ctx, sdata, sname, chlist):
