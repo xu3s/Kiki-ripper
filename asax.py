@@ -60,7 +60,6 @@ async def main(ctx, serid, chlist):
         sname = f'{serid} - {sname}'
         if chlist is None:
             return await get_sdetail(ctx, sname, sdata)
-        
         chlist = chan_gen(chlist)
         return await get_it(client, ctx, sdata, sname, chlist)
 
