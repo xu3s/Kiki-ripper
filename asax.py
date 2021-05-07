@@ -13,7 +13,7 @@ async def save(client, sname, title, cdata): # pylint: disable=too-many-argument
     server = cdata['sAtsServerUrl']
 
     for d in cdata['files']:
-        fname = f'{d["no"]}.jpg'
+        fname = f'{d["no"]:03d}.jpg' #1. leading zero
         full_url = f'{server}{d["secureUrl"]}'
 
         print(f'Downloading {fname}...')
@@ -33,53 +33,68 @@ async def save(client, sname, title, cdata): # pylint: disable=too-many-argument
         return link
     return 'failed to zip'
 
+async def get_sdetail(ctx, sname, sdata):
+    try:
+        link = uptobox.get_link('kkp', sname)
+        slink = f', Folder link : {link}'
+    except Exception as e: # pylint: disable= broad-except
+        print(e)
+        slink = ''
+    await ctx.reply(f'Series id & Title: {sname}, Total Chapter: {sdata["total_count"]}{slink}')
 
-async def main(ctx, serid, chlist=None):
-    await ctx.reply('does it work?')
-    if chlist is None:
-        chlist = []
-    else:
-        chlist =[chlist,]
+async def main(ctx, serid, chlist):
+
+    chlist = chan_gen(chlist)
     async with aiohttp.ClientSession() as client:
         status, sname, sdata = await series_data(client, serid)
         if status != 200:
 
             await ctx.reply(f'Failed to parse the server series_data it return  {status}')
+            return status
 
         sname = f'{serid} - {sname}'
+        if chlist is None:
+            return await get_sdetail(ctx, sname, sdata)
+        return await get_it(client, ctx, sdata, sname, chlist)
 
-        for d in sdata:
+async def get_it(client, ctx, sdata, sname, chlist):
 
-            no = d['order_value']
-            if no not in chlist:
-                continue
+    for d in sdata['singles']:
 
-            try:
-                on_dbx = uptobox.check_files(site='kkp', stitle=sname)
-            except Exception as e: # pylint: disable=broad-except
-                print(e)
-                on_dbx = []
-            pid = d['id']
-            title = f'{no} - {d["title"]}'
-            if f'{title}.zip' in on_dbx:
-                await ctx.reply(uptobox.get_link(site='kkp',
-                    stitle=sname,ctitle=title))
-            else:
+        no = d['order_value']
+        if no not in chlist:
+            continue
 
-                gstatus, cdata = await gdata(client, pid)
-                if gstatus != 200:
-                    await ctx.reply(f'Failed to get chapter data. it return {gstatus}')
+        on_dbx = uptobox.check_files(site='kkp', stitle=sname)
+        # pid = d['id']
+        title = f'{no:03d} - {d["title"]}' #1. leading zero
+        if f'{title}.zip' in on_dbx:
+            await ctx.reply(uptobox.get_link(site='kkp',
+                stitle=sname,ctitle=title))
+            continue
 
-                result = await save(client=client,
-                        sname=sname, title=title,
-                        cdata=cdata['downloadData']['members'])
-                print(result)
-                await ctx.reply(result)
+        gstatus, cdata = await gdata(client, d['id'])
+        print(cdata)
+        if gstatus != 200:
+            await ctx.reply(f'Failed to get chapter data. it return {gstatus}')
+            continue
 
-                #print(f'title: {title}\nno: {no}\npid: {pid}\n')
-                await asyncio.sleep(0)
-                # ctx.reply(result)
-            #pass
+        try:
+            result = await save(client=client,
+                    sname=sname, title=title,
+                    cdata=cdata['downloadData']['members'])
+        except KeyError as ke:
+            await ctx.reply(f'''this chapter may be unavailable or inside paywall: {no}
+                    {cdata["message"]}''')
+            print(ke)
+            break
+        print(result)
+        await ctx.reply(result)
+
+        #print(f'title: {title}\nno: {no}\npid: {pid}\n')
+        await asyncio.sleep(0)
+        # ctx.reply(result)
+    #pass
 
 async def gdata(client,prodid):
     url = 'https://api2-page.kakao.com/api/v1/inven/get_download_data/web'
@@ -108,7 +123,7 @@ async def series_data(client, serid):
         status = r.status
         sdata = await r.json()
         sname = sdata['singles'][0]['title'].strip(' 1화')
-        return status, sname, sdata['singles']
+        return status, sname, sdata # ['singles']
 
 def zpr(dest, cname, to_zip):
     base_name = f'{dest}/zipped/{cname}'
@@ -121,10 +136,36 @@ def zpr(dest, cname, to_zip):
             return f'i messed up \n {e}'
     return 'succes'
 
+def chan_gen(strnum):
+    """ Generate chapter number from format 1,3-4,6
+    or something like that
+    :return: list of number [1,3,4,6]
+    """
+
+    if "," in strnum:
+        a = strnum.split(',')
+    else:
+        a = [strnum]
+
+    result = []
+    for x in a:
+        if '-' in x:
+            xr = x.split('-')
+            for b in range(int(xr[0]), int(xr[1])+1):
+                result.append(b)
+            continue
+        result.append(int(x))
+    return result
+
+
+
 
 if __name__ == '__main__':
 
     seriesid = 56310553
     to_get = [1,]
     loop = asyncio.get_event_loop()
-    print(loop.run_until_complete(main(seriesid, to_get)))
+    print(loop.run_until_complete(main(seriesid, to_get, None)))
+
+#foot_note :
+#1. leading zero = https://stackoverflow.com/questions/134934/display-number-with-leading-zeros

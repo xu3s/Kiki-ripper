@@ -15,9 +15,12 @@ def check_files(site, stitle):
     :param stitle: series title
     :return: list of chapter zip files
     """
-
-    flist = dbx.files_list_folder(f'{root}/{site}/{stitle}').entries
-    entries = [e.name for e in flist]
+    try:
+        flist = dbx.files_list_folder(f'{root}/{site}/{stitle}').entries
+        entries = [e.name for e in flist]
+    except Exception as e: #pylint: disable= broad-except
+        print(e)
+        entries = []
     return entries
 
 
@@ -31,6 +34,7 @@ def upload(site, stitle, ctitle, local_path):
     """
 
     box_path = f'{root}/{site}/{stitle}/{ctitle}.zip'
+    print('Uploading...')
     with open(local_path, 'rb') as f:
         dbx.files_upload(f.read(), box_path)
     return get_link(site, stitle, ctitle)
