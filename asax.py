@@ -1,11 +1,13 @@
 import os
+from dotenv import load_dotenv
 import asyncio
 import shutil
 import aiohttp
 import aiofiles
 import uptobox
 
-dl_path = '/data/data/com.termux/files/home/developing/scraper/saved'
+load_dotenv()
+dl_path = os.getenv('dl_path')
 
 async def save(client, sname, title, cdata): # pylint: disable=too-many-arguments
     cpath = f'{dl_path}/{sname}/{title}'

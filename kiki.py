@@ -17,6 +17,7 @@ async def on_ready():
 
 @bot.command()
 async def get(ctx, serid, to_get=None):
+    await ctx.send(f'Processing {serid}')
     await asax.main(ctx=ctx, serid=serid, chlist=to_get)
 
 @bot.command()
