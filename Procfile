@@ -1,1 +1,1 @@
-worker: python kiki.py
+worker: python333 kiki.py
