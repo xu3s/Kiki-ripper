@@ -4,6 +4,7 @@ import dropbox
 
 load_dotenv()
 TOKEN = os.getenv('DROPBOX_TOKEN')
+TOKEN = os.environ.get('DROPBOX_TOKEN')
 
 dbx = dropbox.Dropbox(TOKEN)
 

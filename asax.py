@@ -8,6 +8,7 @@ import uptobox
 
 load_dotenv()
 dl_path = os.getenv('dl_path')
+dl_path = os.environ.get('DL_PATH')
 
 async def save(client, sname, title, cdata): # pylint: disable=too-many-arguments
     cpath = f'{dl_path}/{sname}/{title}'
@@ -36,6 +37,7 @@ async def save(client, sname, title, cdata): # pylint: disable=too-many-argument
     if zres == 'succes':
         link = uptobox.upload(site='kkp', stitle=sname,ctitle=title,
                 local_path=f'{lpath}/zipped/{title}.zip')
+        os.rmdir(lpath)
         return link
     return 'failed to zip'
 
@@ -128,7 +130,11 @@ async def series_data(client, serid):
     async with client.post(url, data=data) as r:
         status = r.status
         sdata = await r.json()
-        sname = sdata['singles'][0]['title'].strip(' 1화')
+        try:
+            sname = sdata['singles'][0]['title'].strip(' 1화')
+        except IndexError as ie:
+            print(ie)
+            print(sdata)
         return status, sname, sdata # ['singles']
 
 def zpr(dest, cname, to_zip):
