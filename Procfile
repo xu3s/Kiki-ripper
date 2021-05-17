@@ -1,1 +1,1 @@
-web: python tbot.py
+web: python kiki.py
