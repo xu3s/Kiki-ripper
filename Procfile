@@ -1,1 +1,1 @@
-web: python kiki.py
+worker: python kiki.py
