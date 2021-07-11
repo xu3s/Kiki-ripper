@@ -179,5 +179,5 @@ if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     print(loop.run_until_complete(main(seriesid, to_get, None)))
 
-#foot_note :
+#foot_note NOTE:
 #1. leading zero = https://stackoverflow.com/questions/134934/display-number-with-leading-zeros
