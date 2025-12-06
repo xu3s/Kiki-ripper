@@ -98,7 +98,7 @@ toml==0.10.2
 tqdm==4.56.2
 typing-extensions==3.7.4.3
 uritemplate==3.0.1
-urllib3==1.26.2
+urllib3==2.6.0
 w3lib==1.22.0
 webdriver-manager==3.3.0
 websockets==8.1
